@@ -1,17 +1,19 @@
 (function(){
 var schema = {
-  "name": String,
+  "name":       String,
+  "uuid":       String,
   "created_at": { type: Number, default: Date.now },
-  "status": { type: Number, default: 0 },
-  "steps": { type: Number, default: 0 },
-  "total": { type: Number },
-  "result": { type: Number, default: 0 },
+  "started_at": Number,
+  "updated_at": Number,
+  "status":     { type: Number, default: 0 },
+  "steps":      { type: Number, default: 0 },
+  "total":      { type: Number, default: 0 },
+  "result":     { type: Number, default: 0 },
   "jobs": [{
     "name": String,
+    "uuid": String,
     "type": { type: String, default: "series" },
-    "seqs": [{
-      type: String
-    }]
+    "steps": Array
   }]
 };
 module.exports = schema;

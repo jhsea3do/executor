@@ -4,12 +4,12 @@ var _         = require('lodash'),
     express   = require('express'),
     mongoose  = require('mongoose'),
     erm       = require('express-restify-mongoose'),
-    models    = require('./models'),
-    api       = require('./api');
+    models    = require('./models')(mongoose),
+    api       = require('./api')(mongoose);
 
 var sep     = '/';
 var router  = express.Router();
-var apiver  = 'v1';
+var apiver  = 'v2';
 var apipre  = ['', 'api', apiver].join(sep);
 var odtpre  = ['', 'odata'].join(sep);
 // var bf_route = function(req, res, next) { next(); };

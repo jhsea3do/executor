@@ -22,7 +22,7 @@ function(client) {
   return [ m, u, d, function(err, req, res, obj) {
     console.log([m, u].join(' '));
     should.exist(err);
-    should(res.statusCode).equal(401);
+    should(res.statusCode).equal(400);
     client.close();
   }];
 },

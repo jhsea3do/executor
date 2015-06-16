@@ -24,10 +24,10 @@ var addModel = function(file) {
 
 fs.readdirSync(dir).map(addModel);
 
-module.exports = (function() { 
+module.exports = function(mongoose) { 
   return _.transform(services, function(r,s,n){
     r[n] = s(mongoose);
   });
-})();
+};
 
 })();
