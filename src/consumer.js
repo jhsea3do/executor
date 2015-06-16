@@ -8,6 +8,7 @@ var _         = require('lodash'),
 
 
 var getHandlers = function(client) {
+  var Shell = require('./shell');
   var doneScan = function(err, obj) { 
     console.log('#### Consumer closing ####');
     client.close(); 
@@ -17,7 +18,34 @@ var getHandlers = function(client) {
       async.parallel( _.flattenDeep(steps).map(function( step ) {
         console.log(step);
         return function(done) {
-          done(null, step);
+          var saved = _.cloneDeep(step);
+          saved.status = 1;
+          saved.retnum = -1;
+          saved.started_at = Date.now();
+          saved.updated_at = Date.now();
+          var url = '/odata/steps/' + saved['_id'];
+          client.put(url, saved, function(err, req, res, obj) {
+            console.log('update step: ' + res.statusCode);
+            if(!err) {
+              var shell = new Shell(step, function(err, out) {
+                var log = [ String(null===out?'':out).trim()
+                          , String(null===err?'':err).trim() ].join('\n').trim();
+                console.log('result:' + log);
+                saved.status = 2;
+                saved.retnum = 0;
+                saved.result = log;
+                saved.updated_at = Date.now();
+                // console.log(['s', saved]);
+                client.put(url, saved, function(err, req, res, obj) {
+                  // doneScan(null, obj);
+                });
+              });
+              shell.exec();
+              // doneScan(null, step);
+            } else {
+              doneScan(err, saved);
+            }
+          });
         };
       }), doneScan );
     }
