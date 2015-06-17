@@ -27,12 +27,15 @@ var getHandlers = function(client) {
           client.put(url, saved, function(err, req, res, obj) {
             console.log('update step: ' + res.statusCode);
             if(!err) {
-              var shell = new Shell(step, function(err, out) {
-                var log = [ String(null===out?'':out).trim()
-                          , String(null===err?'':err).trim() ].join('\n').trim();
+              var shell = new Shell(step, function(err, ret) {
+                if(err) {
+                  ret = { "err": String(err), "out": null, "num": -1 };
+                }
+                var log = [ String(null===ret.out?'':ret.out).trim()
+                          , String(null===ret.err?'':ret.err).trim() ].join('\n').trim();
                 console.log('result:' + log);
                 saved.status = 2;
-                saved.retnum = 0;
+                saved.retnum = (ret.num == undefined) ? -1 : ret.num;
                 saved.result = log;
                 saved.updated_at = Date.now();
                 // console.log(['s', saved]);

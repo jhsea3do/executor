@@ -68,11 +68,23 @@ var Run = function(mongoose) {
             data.retnum = 0;
         var step = Step.create(data, function(err, obj) {
           if (!err) {
-            var out = recv( obj, function(err, out) {
-              if(err) {
-                res.status(500).json({"msg": String(err).trim()});
+            var out = recv( obj, function(err, ret) {
+              if(data.type == 'shell' || data.type == 'scmd') {
+                var httpCode = 201;
+                if(err) {
+                  httpCode = 500;
+                  ret = { "err": String(err), "out": null, "num": -1 };
+                }
+                var msg = null;
+                msg = [ String(ret.err===null?'':ret.err)
+                      , String(ret.out===null?'':ret.out) ].join('\n').trim();
+                res.status(httpCode).json({"msg": msg, "num": ret.num });
               } else {
-                res.status(201).json({"msg": String(out).trim()});
+                if(err) {
+                  res.status(500).json({"msg": String(err).trim()});
+                } else {
+                  res.status(201).json({"msg": String(ret).trim()});
+                }
               }
             } );
             // res.status(200).json( obj );

@@ -14,18 +14,29 @@
     return {
       'exec': function() {
          var cmd = data.exec;
+         var ret = {}
          conn.on('ready', function() {
            conn.exec(cmd, function(err, stream) {
              if (err) throw err;
-             stream.on('close', function(code, signal) {
+             stream.on('close', function(code, signal) { 
+               // console.log(['code', code]);
+               // console.log(['signal', signal]);
+               ret.num = code;
                conn.end();
+               if(done) done(null, ret);
+             }).on('error', function(error) {
+                err = error;
+                conn.end();
+                if(done) done(err, null);
              }).on('data', function(data) {
+               ret.out = data;
                // console.log([ 'out', done ]);
-               if(done) done(null, data);
+               // if(done) done(null, data);
                // console.log('STDOUT: ' + String(data).trim());
              }).stderr.on('data', function(data) {
+               ret.err = data;
                // console.log([ 'err', done ]);
-               if(done) done(data, null);
+               // if(done) done(data, null);
                // console.log('STDERR: ' + String(data).trim());
              });
            });
