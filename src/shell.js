@@ -1,24 +1,16 @@
 (function(){
-  var d = { _id: '5580467edc66ac9e0f91110d',
-    name: 'step3',
-    exec: 'echo OK',
-    node: { addr: '127.0.0.1', host: 'localhost' },
-    cred: { addr: 'cloudm', user: 'cloudm' },
-    uuid: 'd18ee045-26d2-4803-a181-d50ac729ccc2',
-    type: 'shell',
-    job: { uuid: '2bef17ca-ddbb-405a-b943-a261f80cd37b', seq: 1 },
-    task: { uuid: '48e778cf-ab48-4c29-ad2c-24b0156ac26e', seq: 2 },
-    result: -1,
-    status: 1,
-    created_at: 1434470014642,
-    __v: 0,
-    started_at: 1434470057936,
-    updated_at: 1434470057936 
-  };
 
   var Shell = function(data, done) {
     var conn = require('ssh2').Client();
     var fs   = require('fs');
+    var path = require('path');
+    var dest = {
+      "host": data.node.addr,
+      "port": 22,
+      "username": data.cred.user,
+      "password": data.cred.pass
+      // "privateKey": fs.readFileSync('/home/jhsea3do/.ssh/cloudm.pem')
+    };
     return {
       'exec': function() {
          var cmd = data.exec;
@@ -37,23 +29,67 @@
                // console.log('STDERR: ' + String(data).trim());
              });
            });
-         }).connect({
-           "host": data.node.addr,
-           "port": 22,
-           "username": data.cred.user,
-           "privateKey": fs.readFileSync('/home/jhsea3do/.ssh/cloudm.pem')
-         });
+         }).connect( dest );
+      },
+      'sftp': function() {
+         var filePath = data.exec;
+         var sourcePath = data.file;
+         // var text = data.text;
+         conn.on('ready', function() {
+           conn.sftp(function(err, sftp) {
+             if (err) throw err;
+             var options = options || {};
+             options.autoClose = true;
+             var write = sftp.createWriteStream(filePath, options);
+             write.on('error', function(error) {
+               err = error;
+               conn.end();
+               if(done) done(err, null);
+             }).on('finish', function() {
+               conn.end();
+               if(done) done(null, filePath);
+             });
+             try {
+               fs.createReadStream(sourcePath).pipe(write);
+               // write.end(fs.readFileSync(sourcePath));
+             } catch (e) {
+               write.end();
+             }
+           });
+
+         }).connect( dest );
+      },
+      'sget': function() {
+        var filePath = data.exec;
+        var destPath = data.file;
+        console.log([ filePath, destPath ]);
+        conn.on('ready', function() {
+          conn.sftp(function(err, sftp) {
+            if (err) throw err;
+            var options = options || {};
+            options.autoClose = true;
+            var read = sftp.createReadStream(filePath, options);
+            read.on('error', function(error) {
+              err = error;
+              conn.end();
+              if(done) done(err, null);
+            }).on('end', function() {
+              conn.end();
+              if(done) done(null, filePath);
+            });
+            try {
+              var ws = fs.createWriteStream(destPath);
+              read.pipe(ws);
+            } catch(e) {
+              read.end(); 
+            }
+          });
+        }).connect( dest );
       }
 
     };
 
   }
 
-  // var shell = new Shell(d);
-  // shell.exec();
-  // shell = new Shell(d);
-  // shell.exec('ls -l');
-  // (Shell(d)).exec();
-  // (Shell(d)).exec('ls -l');
   module.exports = Shell;
 })();
