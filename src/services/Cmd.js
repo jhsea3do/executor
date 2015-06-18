@@ -75,6 +75,11 @@ var Run = function(mongoose) {
                   httpCode = 500;
                   ret = { "err": String(err), "out": null, "num": -1 };
                 }
+                if(ret.num == 127) {
+                  httpCode = 500;
+                } else if (ret.num == 126) {
+                  httpCode = 400;
+                }
                 var msg = null;
                 msg = [ String(ret.err===null?'':ret.err)
                       , String(ret.out===null?'':ret.out) ].join('\n').trim();

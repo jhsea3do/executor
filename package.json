@@ -11,7 +11,9 @@
   "license": "ISC",
   "dependencies": {
     "async": "^1.2.1",
+    "bluebird": "^2.9.30",
     "body-parser": "^1.13.0",
+    "eventemitter2": "^0.4.14",
     "express": "^4.12.4",
     "express-restify-mongoose": "^1.0.1",
     "hasha": "^1.0.1",

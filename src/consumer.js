@@ -8,15 +8,57 @@ var _         = require('lodash'),
 
 
 var getHandlers = function(client) {
-  var Shell = require('./shell');
+  // var Shell = require('./shell');
+
+  var recv     = function(data, cb) {
+    var step   = data;
+    var Shell  = require('./shell');
+    if (data.exec) {
+      if (data.type
+        && (data.type == 'shell' || data.type == 'scmd')) {
+        var shell = new Shell(data, cb);
+        return shell.exec();
+      } else if (data.type && data.text
+        && (data.type == 'touch' || data.type == 'scat')) {
+        var fs     = require('fs');
+        var path   = require('path');
+        var tmp    = '/tmp/tcloud2';
+        if(!fs.existsSync(tmp)) fs.mkdirSync(tmp);
+        var file   = path.join( tmp, data.uuid + '.tmp' );
+        var bool   = true;
+        try {
+          var fd = fs.openSync(file, 'w');
+          fs.writeSync(fd, data.text);
+          fs.closeSync(fd);
+        } catch (e) {
+          bool = false;
+          return cb('err, touch failed', null);
+        }
+        if(bool) {
+          data.file  = file;
+          var shell  = new Shell(data, cb);
+          return shell.sftp();
+        }
+      } else if (data.type
+        && ( data.type == 'file' || data.type == 'sput' ) ) {
+        var shell = new Shell(data, cb);
+        return shell.sftp();
+      } else if (data.type && data.type == 'sget') {
+        var shell = new Shell(data, cb);
+        return shell.sget();
+      }
+    }
+    return cb('err, not supported', null);
+  };
+
+
   var doneScan = function(err, obj) { 
     console.log('#### Consumer closing ####');
     client.close(); 
   };
   var doneStep = function(err, steps) {
     if(steps) {
-      async.parallel( _.flattenDeep(steps).map(function( step ) {
-        console.log(step);
+      async/*.series*/.parallel( _.flattenDeep(steps).map(function( step ) {
         return function(done) {
           var saved = _.cloneDeep(step);
           saved.status = 1;
@@ -27,13 +69,19 @@ var getHandlers = function(client) {
           client.put(url, saved, function(err, req, res, obj) {
             console.log('update step: ' + res.statusCode);
             if(!err) {
-              var shell = new Shell(step, function(err, ret) {
+              recv(step, function(err, ret) {
                 if(err) {
+                  console.log(err);
                   ret = { "err": String(err), "out": null, "num": -1 };
                 }
-                var log = [ String(null===ret.out?'':ret.out).trim()
+                var log = null;
+                if( ret.out != undefined || ret.err != undefined) {
+                    log = [ String(null===ret.out?'':ret.out).trim()
                           , String(null===ret.err?'':ret.err).trim() ].join('\n').trim();
-                console.log('result:' + log);
+                } else {
+                    log = String(ret).trim();
+                }
+                console.log(['type:', saved.type, saved.exec, 'result:', ret.num, log]);
                 saved.status = 2;
                 saved.retnum = (ret.num == undefined) ? -1 : ret.num;
                 saved.result = log;
@@ -43,7 +91,7 @@ var getHandlers = function(client) {
                   // doneScan(null, obj);
                 });
               });
-              shell.exec();
+              // shell.exec();
               // doneScan(null, step);
             } else {
               doneScan(err, saved);

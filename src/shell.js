@@ -14,7 +14,7 @@
     return {
       'exec': function() {
          var cmd = data.exec;
-         var ret = {}
+         var ret = { 'out': null, 'err': null, 'num': -1 }
          conn.on('ready', function() {
            conn.exec(cmd, function(err, stream) {
              if (err) throw err;
