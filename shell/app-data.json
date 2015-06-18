@@ -1,0 +1,40 @@
+{
+  "name": "tests",
+  "jobs": [{
+    "name": "test-a", "type": "series", "steps": [{
+      "name": "step1", "type": "scmd", "exec": "mkdir -p /tmp/script", 
+      "node": {"host": "localhost", "addr": "127.0.0.1"}, 
+      "cred": {"user": "cloudm", "pass": "123456"}
+    }, {
+      "name": "step2", "type": "scat", "exec": "/tmp/script/app-config.lst", 
+      "text": "app_home=/tmp/script",
+      "node": {"host": "localhost", "addr": "127.0.0.1"}, 
+      "cred": {"user": "cloudm", "pass": "123456"}
+    }]
+  }, {
+    "name": "test-b", "type": "series", "steps": [{
+      "name": "step3", "type": "sput", "exec": "/tmp/script/app-setup.sh", 
+      "file": "/home/cloudm/works/tcloud2-ams/shell/app-setup.sh",
+      "node": {"host": "localhost", "addr": "127.0.0.1"}, 
+      "cred": {"user": "cloudm", "pass": "123456"}
+    }, {
+      "name": "step4", "type": "sput", "exec": "/tmp/script/env-setup.sh", 
+      "file": "/home/cloudm/works/tcloud2-ams/shell/env-setup.sh",
+      "node": {"host": "localhost", "addr": "127.0.0.1"}, 
+      "cred": {"user": "cloudm", "pass": "123456"}
+    }]
+  }, {
+    "name": "test-c", "type": "series", "steps": [{
+      "name": "step5", "type": "scmd", "exec": "sh /tmp/script/app-setup.sh",
+      "node": {"host": "localhost", "addr": "127.0.0.1"}, 
+      "cred": {"user": "cloudm", "pass": "123456"}
+    }]
+  }, {
+    "name": "test-d", "type": "series", "steps": [{
+      "name": "step6", "type": "scmd", "exec": "sh /tmp/script/env-setup.sh",
+      "node": {"host": "localhost", "addr": "127.0.0.1"}, 
+      "cred": {"user": "cloudm", "pass": "123456"}
+    }]
+  }] 
+    
+}
