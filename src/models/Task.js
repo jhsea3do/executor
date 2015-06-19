@@ -9,6 +9,7 @@ var schema = {
   "steps":      { type: Number, default: 0 },
   "total":      { type: Number, default: 0 },
   "result":     { type: Number, default: 0 },
+  "message":    String,
   "jobs": [{
     "name": String,
     "uuid": String,

@@ -59,6 +59,7 @@
              }).on('finish', function() {
                conn.end();
                if(done) done(null, filePath);
+               // if(done) done(null, { 'out': { 'msg': filePath } });
              });
              try {
                fs.createReadStream(sourcePath).pipe(write);
@@ -87,6 +88,7 @@
             }).on('end', function() {
               conn.end();
               if(done) done(null, filePath);
+              // if(done) done(null, { 'out': { 'msg': filePath } });
             });
             try {
               var ws = fs.createWriteStream(destPath);

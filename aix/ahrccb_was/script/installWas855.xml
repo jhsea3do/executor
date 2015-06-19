@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<agent-input clean="true" temporary="true">
+<server>
+<repository location="/usr/wasinstall/wasbase/disk1" />
+</server>
+<install modify='false'>
+<offering id='com.ibm.websphere.ND.v85' 
+  profile='IBM WebSphere Application Server Network Deployment V8.5' 
+  features='core.feature,ejbdeploy,thinclient,embeddablecontainer,com.ibm.sdk.6_64bit' installFixes='none'/>
+</install>
+<profile id='IBM WebSphere Application Server Network Deployment V8.5' 
+  installLocation='/var/IBM/WebSphere/AppServer'>
+<data key='eclipseLocation' value='/var/IBM/WebSphere/AppServer'/>
+<data key='user.import.profile' value='false'/>
+<data key='cic.selector.nl' value='en'/>
+</profile>
+</agent-input>

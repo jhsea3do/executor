@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<agent-input>
+<server>
+  <repository location='/usr/wasinstall/fix'/>
+</server>
+<profile id='IBM WebSphere Application Server Network Deployment V8.5'
+  installLocation='/var/IBM/WebSphere/AppServer'>
+  <data key='eclipseLocation' value='/var/IBM/WebSphere/AppServer'/>
+  <data key='user.import.profile' value='false'/>
+  <data key='cic.selector.nl' value='en, fr, it, zh, ro, ru, zh_TW, de, ja, pl, es, cs, hu, ko, pt_BR'/>
+</profile>
+<install modify='false'>
+  <offering profile='IBM WebSphere Application Server Network Deployment V8.5' id='com.ibm.websphere.ND.v85'
+    version='8.5.5005.20150220_0158' features='core.feature,ejbdeploy,thinclient,embeddablecontainer,com.ibm.sdk.6_64bit'/>
+</install>
+<preference name='com.ibm.cic.common.core.preferences.eclipseCache' value='/usr/IBM/IMShared'/>
+<preference name='com.ibm.cic.common.core.preferences.connectTimeout' value='30'/>
+<preference name='com.ibm.cic.common.core.preferences.readTimeout' value='30'/>
+<preference name='com.ibm.cic.common.core.preferences.downloadAutoRetryCount' value='0'/>
+<preference name='offering.service.repositories.areUsed' value='true'/>
+<preference name='com.ibm.cic.common.core.preferences.ssl.nonsecureMode' value='false'/>
+<preference name='com.ibm.cic.common.core.preferences.http.disablePreemptiveAuthentication' value='false'/>
+<preference name='http.ntlm.auth.kind' value='NTLM'/>
+<preference name='http.ntlm.auth.enableIntegrated.win32' value='true'/>
+<preference name='com.ibm.cic.common.core.preferences.preserveDownloadedArtifacts' value='true'/>
+<preference name='com.ibm.cic.common.core.preferences.keepFetchedFiles' value='false'/>
+<preference name='PassportAdvantageIsEnabled' value='false'/>
+<preference name='com.ibm.cic.common.core.preferences.searchForUpdates' value='false'/>
+</agent-input>
