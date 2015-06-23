@@ -83,7 +83,8 @@
     "loadSchedules": function(cb, size) {
       size = size || 5;
       var url  = ["/odata/schedules?",
-        // "query={\"todo.status\":0}",
+        "query={\"todo.status\":0}",
+        // "query={\"uuid\": \"a6cbd91f-6100-4737-9e2c-a993b7f379c5\"}",
         "&limit=" + size ].join('');
       var done = function(err, obj) {
         
@@ -118,7 +119,7 @@
           var tasks = obj;
           self.updateSchedule(function() {
           }, { 'uuid': schedule.uuid}, { "$set": {
-            "todo.status": 0
+            "todo.status": 1
           } });
           async.parallel(tasks.map(function(task) {
             return function(cb) {
