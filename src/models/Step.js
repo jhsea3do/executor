@@ -15,6 +15,7 @@ var schema = {
   "exec":       { type: String, required: true   },
   "text":       { type: String                   },
   "file":       { type: String                   },
+  "hosts":      { type: Array }, 
   "node":       { type: Object, required: true   }, 
   "cred":       { type: Object, required: true   }
 };

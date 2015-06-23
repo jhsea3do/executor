@@ -318,6 +318,66 @@
       shell.exec();
       return this;
     },
+    "shos": function(cb, data) {
+      var fs     = require('fs');
+      var path   = require('path');
+      var tmp    = '/tmp/tcloud2';
+      if(!fs.existsSync(tmp)) fs.mkdirSync(tmp);
+      var file   = path.join( tmp, data.uuid + '.tmp' );
+      var bool   = true;
+      var text   = '';
+      if(data.hosts) {
+        _.each(data.hosts, function(host) {
+          var line = [ host.addr, host.host ].join("\t");
+          text += (line + "\n");
+        });
+        // console.log(text);
+      } else if (data.text) {
+        text = data.text;
+      }
+      try {
+        var fd = fs.openSync(file, 'w');
+        fs.writeSync(fd, text);
+        fs.closeSync(fd);
+      } catch (e) {
+        bool = false;
+        return cb('err, hosts failed', null);
+      }
+      var Shell = require('./shell');
+      var func1 = function(cb) {
+        var f1Data =  { "async": false,  "name": "hosts scp", 
+          "type": "sput", "exec": "/tmp/" + data.uuid + ".hosts" };
+        f1Data.file = file;
+        f1Data.node = data.node; f1Data.cred = data.cred;
+        var shell = new Shell(f1Data, cb)
+        return shell.sftp();
+      }
+      var func2 = function(cb) {
+        var shFile = path.join(__dirname, '..', 'shell', 'hosts.helper.sh');
+        var f2Data =  { "async": false,  "name": "hosts tool scp", 
+          "type": "sput", "exec": "/tmp/hosts.helper.sh", "file": shFile };
+        f2Data.node = data.node; f2Data.cred = data.cred;
+        var shell = new Shell(f2Data, cb)
+        return shell.sftp();
+      }
+      var func3 = function(cb) {
+        var shExec = "sh /tmp/hosts.helper.sh /tmp/" + data.uuid + ".hosts /etc/hosts";
+        var f3Data = { "async": false,  "name": "hosts tool run", 
+          "type": "scmd", "exec": shExec };
+        f3Data.node = data.node; f3Data.cred = data.cred;
+        var shell = new Shell(f3Data, cb)
+        return shell.exec();
+      }
+
+      async.series([func1, func2, func3], function(err, obj) {
+        if(obj && obj.length == 3) {
+          cb(null, obj[2]);
+        } else {
+          cb('modify hosts for ' + data.node.host + ' failed', null);
+        }
+      });
+      return this;
+    },
     "proc": function() {
       var done = function() {
         this.close();
