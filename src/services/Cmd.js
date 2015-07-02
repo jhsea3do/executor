@@ -25,7 +25,15 @@ var Run = function(mongoose) {
         var bool   = true;
         try {
           var fd = fs.openSync(file, 'w');
-          fs.writeSync(fd, data.text);
+          var algorithm = 'base64';
+          var text = data.text;
+          var expr = /^data\:.*\;base64\,\s?/;
+          if(text && text.match(expr)) {
+            var src = text.replace(expr, '');
+            var buf = new Buffer(src, algorithm);
+            text = buf.toString();
+          }
+          fs.writeSync(fd, text);
           fs.closeSync(fd);
         } catch (e) {
           bool = false;

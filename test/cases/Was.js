@@ -6,13 +6,26 @@
 
   var app_home = path.join(__dirname, '..', '..');
 
-  var hosts = [
-    { "host": "aix71was0.dc", "addr": "10.58.0.134", "conf": { "was": "cell" } },
-    { "host": "aix71was1.dc", "addr": "10.58.0.135", "conf": { "was": "stand" } },
-    { "host": "aix71was2.dc", "addr": "10.58.0.136", "conf": { "was": "stand" } }
-  ];
+  var ftp = [ "ftphost", "ftpuser", "ftppass" ];
 
-  var ftp = [ "10.48.0.210", "htzhang", "8uhbvgy7" ];
+  var cluster = { 
+    "name": "aix713-was",
+    "nodes": [{ 
+      "role": "cell",
+      "addr": "10.58.0.134",
+      "host": "aix713-was-1435809061697"
+    }, {
+      "role": "stand",
+      "addr": "10.58.0.135",
+      "host": "aix713-was-1435809064996"
+    }] 
+  };
+
+  var nodes = [ ];
+
+  _.each( cluster.nodes, function(node) {
+    nodes.push({ "host": node.host, "addr": node.addr });
+  });
 
   var files = (function(ctg) {
     dir = path.join(app_home, ctg, 'script');
@@ -22,11 +35,20 @@
     });
   })('aix/ahrccb_was');
 
+  var helpers = {
+    'hostname.helper.sh': path.join(app_home, 'shell', 'hostname.helper.sh'),
+    'hosts.helper.sh':    path.join(app_home, 'shell', 'hosts.helper.sh')
+  };
+
   var prepare_steps = [
-    { "name": "hosts"   },
-    { "name": "scripts" },
-    { "name": "files"   },
-    { "name": "chmod"   }
+    { "name": "scripts"      },
+    { "name": "put-hostname" },
+    { "name": "set-hostname" },
+    { "name": "put-hosts"    },
+    { "name": "gen-hosts"    },
+    { "name": "set-hosts"    },
+    { "name": "files"        },
+    { "name": "chmod"        }
   ];
 
   var install_steps = [
@@ -35,8 +57,7 @@
   ];
 
   var cluster_steps = [
-    { "name": "createProfiles.was.ksh" } /*,
-  //  { "name": "logs" } */
+    { "name": "createProfiles.was.ksh" }
   ];
 
   var jobs = [
@@ -50,42 +71,95 @@
     "pass": "passw0rd"
   }};
 
-  var get_creds = function(host) {
-    return creds[host.host] || creds['default'];
+  var get_creds = function(node) {
+    return creds[node.host] || creds['default'];
   };
 
-  var get_steps = (function(hosts, files, creds) {
+  var get_steps = (function(nodes, files, creds) {
     var jobs = {};
-    var sort = function(a,b){ return (a.conf.was == 'cell')?0:1; };
+    var role = function(node) { 
+      var find = _.find( cluster.nodes, node ); 
+      return find ? find.role : null;
+    };
+    var sort = function(a,b){ return ( role(a) == 'cell')?0:1; };
     var get_raws = function( cb ) {
-      return hosts.sort(sort).map(function(host) {
-        var step  = {};
-        step.node = { "host": host.host, "addr": host.addr };
-        step.cred = get_creds(host);
+      return nodes.sort(sort).map(function(node) {
+        var step  = { "node": node, "cred": get_creds(node) };
         cb(step);
         return step;
       });
     };
+
     jobs.prepare = {};
     jobs.install = {};
     jobs.cluster = {};
-    jobs.prepare.hosts = function(j, s) {
-      var steps = get_raws(function(step) {
-        step.hosts = hosts.map(function(host) {
-          return { "host": host.host, "addr": host.addr }
-        });
-        step.async = true;
-        step.exec  = 'hosts.helper.sh';
-        step.type  = 'shos';
-        step.name  = [ [j, s].join('-'), step.node.host ].join('#');
-      });
-      return { "name": [j, s].join('-'), "type": "series", "steps": steps }
-    };
 
     jobs.prepare.scripts = function(j, s) {
       var steps = get_raws(function(step) {
         step.async = true;
         step.exec  = 'mkdir -p /script';
+        step.type  = 'scmd';
+        step.name  = [ [j, s].join('-'), step.node.host ].join('#');
+      });
+      return { "name": [j, s].join('-'), "type": "series", "steps": steps }
+    };
+
+
+    jobs.prepare['put-hostname'] = function(j, s) {
+      var steps = get_raws(function(step) {
+        var target = [ '/script', 'hostname.helper.sh' ].join('/');
+        step.async = true;
+        step.exec  = target;
+        step.type  = 'sput';
+        step.file  = helpers['hostname.helper.sh']
+        step.name  = [ [j, s].join('-'), step.node.host ].join('#');
+      });
+      return { "name": [j, s].join('-'), "type": "series", "steps": steps }
+    };
+
+    jobs.prepare['set-hostname'] = function(j, s) {
+      var steps = get_raws(function(step) {
+        step.async = true;
+        step.exec  = 'cd /script && sh ./hostname.helper.sh ' + step.node.host;
+        step.type  = 'scmd';
+        step.name  = [ [j, s].join('-'), step.node.host ].join('#');
+      });
+      return { "name": [j, s].join('-'), "type": "series", "steps": steps }
+    };
+
+    jobs.prepare['put-hosts'] = function(j, s) {
+      var steps = get_raws(function(step) {
+        var target = [ '/script', 'hosts.helper.sh' ].join('/');
+        step.async = true;
+        step.exec  = target;
+        step.type  = 'sput';
+        step.file  = helpers['hosts.helper.sh']
+        step.name  = [ [j, s].join('-'), step.node.host ].join('#');
+      });
+      return { "name": [j, s].join('-'), "type": "series", "steps": steps }
+    };
+
+    jobs.prepare['gen-hosts'] = function(j, s) {
+      var steps = get_raws(function(step) {
+        var target  = [ '/script', 'hosts.tmp' ].join('/');
+        var content = nodes.map(function(node){
+          var line  = [ node.addr, node.host ].join("\t");
+          return line;
+        }).join("\n");
+        var conenc = new Buffer( content ).toString('base64');
+        step.async = true;
+        step.exec  = target;
+        step.type  = 'scat';
+        step.text  = 'data:text/plain;base64,' + conenc;
+        step.name  = [ [j, s].join('-'), step.node.host ].join('#');
+      }); 
+      return { "name": [j, s].join('-'), "type": "series", "steps": steps }
+    };
+
+    jobs.prepare['set-hosts'] = function(j, s) {
+      var steps = get_raws(function(step) {
+        step.async = true;
+        step.exec  = 'cd /script && sh ./hosts.helper.sh /script/hosts.tmp /etc/hosts';
         step.type  = 'scmd';
         step.name  = [ [j, s].join('-'), step.node.host ].join('#');
       });
@@ -107,14 +181,13 @@
         });
       });
 
-      // console.log(steps);
       return { "name": [j, s].join('-'), "type": "series", "steps": steps }
     };
 
     jobs.prepare.chmod = function(j, s) {
       var steps = get_raws(function(step) {
         step.async = true;
-        step.exec  = 'chmod 755 /script/*.ksh';
+        step.exec  = 'chmod +x /script/*.ksh && chmod +x /script/*.sh';
         step.type  = 'scmd';
         step.name  = [ [j, s].join('-'), step.node.host ].join('#');
       });
@@ -144,9 +217,9 @@
     jobs.cluster['createProfiles.was.ksh'] = function(j, s) {
       var steps = get_raws(function(step) {
         step.async = true;
-        var host   = _.find(hosts, step.node);
-        var cell   = _.find(hosts, { "conf": { "was": "cell"} });
-        step.exec  = 'cd /script && ./createProfiles.was.ksh ' + host.conf.was
+        var cell   = _.find( cluster.nodes, { 'role': 'cell' } );
+        var role   = _.find( cluster.nodes, step.node ).role;
+        step.exec  = 'cd /script && ./createProfiles.was.ksh ' + role
                      + ' ' + cell.host + ' ' + 8879;
         step.type  = 'scmd';
         step.name  = [ [j, s].join('-'), step.node.host ].join('#');
@@ -160,9 +233,9 @@
       return jobs[j][s](j, s);
     };
 
-  })(hosts, files, creds);
+  })(nodes, files, creds);
 
-  var task = {  "name": "aix71-was", "jobs": [] };
+  var task = {  "name": cluster.name, "jobs": [] };
 
   jobs.map(function(job) {
     job.steps.map(function(step) {
