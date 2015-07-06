@@ -231,7 +231,7 @@
     "scat": function(cb, data) {
       var fs     = require('fs');
       var path   = require('path');
-      var tmp    = '/tmp/tcloud2';
+      var tmp    = '/tmp/executor';
       if(!fs.existsSync(tmp)) fs.mkdirSync(tmp);
       var file   = path.join( tmp, data.uuid + '.tmp' );
       var bool   = true;
@@ -329,7 +329,7 @@
     "shos": function(cb, data) {
       var fs     = require('fs');
       var path   = require('path');
-      var tmp    = '/tmp/tcloud2';
+      var tmp    = '/tmp/executor';
       if(!fs.existsSync(tmp)) fs.mkdirSync(tmp);
       var file   = path.join( tmp, data.uuid + '.tmp' );
       var bool   = true;
