@@ -1,13 +1,13 @@
 {
-  "name": "tcloud2-ams",
+  "name": "executor",
   "version": "2.0.0",
-  "description": "TCLOUD2:AMS",
+  "description": "SSH Automatic Executor",
   "main": "index.js",
   "scripts": {
     "start": "node ./src/server.js",
     "test": "node ./test/index.js"
   },
-  "author": "Hai Ji <shjh@cn.ibm.com>",
+  "author": "Hai Ji <jhsea3do@gmail.com>",
   "license": "ISC",
   "dependencies": {
     "async": "^1.2.1",
