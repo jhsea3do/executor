@@ -14,12 +14,12 @@
   }, {
     "name": "test-b", "type": "series", "steps": [{
       "name": "step3", "type": "sput", "exec": "/tmp/script/app-setup.sh", 
-      "file": "/home/cloudm/works/tcloud2-ams/shell/app-setup.sh",
+      "file": "/home/cloudm/works/executor/shell/app-setup.sh",
       "node": {"host": "localhost", "addr": "127.0.0.1"}, 
       "cred": {"user": "cloudm", "pass": "123456"}
     }, {
       "name": "step4", "type": "sput", "exec": "/tmp/script/env-setup.sh", 
-      "file": "/home/cloudm/works/tcloud2-ams/shell/env-setup.sh",
+      "file": "/home/cloudm/works/executor/shell/env-setup.sh",
       "node": {"host": "localhost", "addr": "127.0.0.1"}, 
       "cred": {"user": "cloudm", "pass": "123456"}
     }]
