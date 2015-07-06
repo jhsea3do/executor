@@ -15,7 +15,7 @@ var odtpre  = ['', 'odata'].join(sep);
 // var bf_route = function(req, res, next) { next(); };
 // router.use(bf_route);
 router.get(sep, function(req, res){
-  res.send('tcloud2:ams');
+  res.send('executor started');
 });
 // add api
 _.each(api, function(f, k) {
